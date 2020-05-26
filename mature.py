@@ -7,6 +7,7 @@ Created on Tue May 19 15:21:04 2020
 """
 
 import commSelect
+import numpy as np
 
 def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel):
 
@@ -35,4 +36,4 @@ def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel):
         data[i] = adultDataAll[i][-1]; # biomass+metabolite time series data
         adultDataAll[i] = adultDataAll[i][:-1][0]; #CellType objects
         
-    return [adultDataAll, data];
+    return [adultDataAll, np.array(data)];

@@ -29,12 +29,14 @@ class CellType:
         else:
             print("Error: invalid input (check sizes of vectors)");
             return;
-        self.traits_bound = self.traits.copy();
+        self.traits_bound = self.traits.flatten();
+        self.traits_lowerbound = self.traits.flatten() * 0;
         self.inviable_index = [];
         
     def copy(self):
         other = CellType(self.traits, self.L, self.N, self.death_rate);
         other.traits_bound = self.traits_bound.copy();
+        other.traits_lowerbound = self.traits_lowerbound.copy();
         other.inviable_index = self.inviable_index;
         return other;
     
@@ -136,11 +138,14 @@ class CellType:
         
         return;
         
-    #constrain traits to upper bounds
+    #constrain traits to upper and lower bounds
     def boundTraits(self):
         for i in range(self.n_genos):
             self.traits[i,self.traits[i,:] > self.traits_bound] = \
                 self.traits_bound[self.traits[i,:] > self.traits_bound];
+            self.traits[i,self.traits[i,:] < self.traits_lowerbound] = \
+                self.traits_lowerbound[self.traits[i,:] < self.traits_lowerbound];
+            
       
     #remove strains that cannot grow (zero growth rate or rsrc affinity, etc)
     def clearInviable(self):

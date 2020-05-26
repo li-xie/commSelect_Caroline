@@ -35,7 +35,7 @@ def simulateOneWell(newbData, initMetabolData, ivpFunc, nsteps, dt, mut_params):
     #simulate
     for tstep in range(1, nsteps + 1):
         
-        #RBPFG for ode solver
+        #for ode solver
         now = np.append(metabolData[:,tstep - 1], np.zeros(sum(n_genos_curr)));
         tspan = [0., dt];
         ode_args = (newbData);
