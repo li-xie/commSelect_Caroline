@@ -9,6 +9,7 @@ Created on Tue Apr 28 17:33:56 2020
 import numpy as np
 
 def normcond(N,p):
+    p[p == 0] = 1e-9;  # avoid division errors
     return np.logical_and((N > 9 * p / (1-p)), (N > 9 * (1-p) / p));
 
 def fastbinorv(N,p):
