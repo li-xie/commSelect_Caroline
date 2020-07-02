@@ -41,7 +41,7 @@ def pipette(newbDataAll, winnerData, target_inds, nD):
          
                 nb_traits_temp = winnerData[c].traits;
                 nb_L_temp = winnerData[c].L;
-                nb_N_temp = winnerData[c].N;
+                nb_N_temp = winnerData[c].N * 0;
             
             newbDataAll[target_inds[j]][c].traits = np.array(nb_traits_temp); #traits
             newbDataAll[target_inds[j]][c].L = np.array(nb_L_temp); #L
