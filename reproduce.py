@@ -9,7 +9,7 @@ Created on Thu May 14 12:19:37 2020
 import numpy as np
 import commSelect.CellType
 
-def reproduce(adultDataAll, newbDataAll, P_sorted, num_wells, BM_target, newborns_per_adult):
+def reproduce(adultDataAll, newbDataAll, P_sorted, num_wells, BM_target, newborns_per_adult, cs):
     
     finished_pipetting = False;
     num_wells_filled = 0;
@@ -45,7 +45,10 @@ def reproduce(adultDataAll, newbDataAll, P_sorted, num_wells, BM_target, newborn
     
             print("filling: " + str(target_inds));
             
-            newbDataAll = commSelect.pipette.pipette(newbDataAll, winnerData, target_inds, nD);
+            if cs:
+                newbDataAll = commSelect.cellSorting.cellSorting(newbDataAll, winnerData, target_inds, nD, BM_target);
+            else:
+                newbDataAll = commSelect.pipette.pipette(newbDataAll, winnerData, target_inds, nD);
             
         if (finished_pipetting):
             break;

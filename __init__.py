@@ -16,3 +16,4 @@ import commSelect.pipette
 import commSelect.reproduce
 import commSelect.mature
 import commSelect.save
+import commSelect.cellSorting
