@@ -13,18 +13,21 @@ import numpy as np
 class CellType:
     
     #create new cell type
+    #traits: n_genos x n_traits 2D array
+    #L: n_genos x 1 1D array or scalar
+    #N: n_genos x 1 1D array or scalar
     def __init__(self, traits, L, N, d):
-        if len(traits) == len(N) and len(N) == len(L):
-            self.traits = traits.copy();
-            self.N = N.copy();
-            self.L = L.copy();
-            self.n_genos = len(traits);
+        if np.shape(traits)[0] > 1 and np.shape(traits)[0] == np.size(N) and np.size(N) == np.size(L):
+            self.traits = traits.copy();           
+            self.n_genos = np.shape(self.traits)[0];
+            self.N = np.reshape(N, (1,self.n_genos));
+            self.L = np.reshape(L, (1,self.n_genos));
             self.death_rate = d;
-        elif len(N) == 1 and len(L) == 1:
-            self.traits = traits.copy();
-            self.N = np.repeat(N.copy(), len(traits));
-            self.L = np.repeat(L.copy(), len(traits));
-            self.n_genos = len(traits);
+        elif np.size(N) == 1 and np.size(L) == 1:
+            self.traits = traits.copy();          
+            self.n_genos = np.shape(self.traits)[0];
+            self.N = np.repeat(N, self.n_genos);
+            self.L = np.repeat(L, self.n_genos);
             self.death_rate = d;
         else:
             print("Error: invalid input (check sizes of vectors)");

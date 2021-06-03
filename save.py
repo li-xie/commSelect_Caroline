@@ -9,6 +9,7 @@ Created on Wed May 20 13:10:18 2020
 import commSelect.CellType
 import numpy as np
 
+#save data on newborns to file
 def saveNewborns(newbDataAll, fname):
     data_final = [0.] * len(newbDataAll);
     for i in range(len(newbDataAll)):
@@ -20,6 +21,7 @@ def saveNewborns(newbDataAll, fname):
         
     np.savetxt(fname, np.array(data_final));
     
+#save data on adults to file
 def saveAdults(adultDataAll, add_data, fname):
     data_final = [0.] * len(adultDataAll);
     for i in range(len(adultDataAll)):

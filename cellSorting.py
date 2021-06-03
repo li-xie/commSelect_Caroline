@@ -10,6 +10,15 @@ Created on Wed Jul  8 14:53:58 2020
 import commSelect.CellType
 import numpy as np
 
+#sort cells from mature community into newborns (fix phi and biomass)
+#input:
+#newbDataAll: newborn community data structure
+#winnerData: mature community to be reproduced
+#target_inds: list of indices of newborns to be populated
+#nD: dilution factor for mature community
+#N0: target total number of cells
+#output:
+#newbDataAll: newborn community data structure
 def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
     
     #calculate target fraction for each cell type
@@ -86,6 +95,9 @@ def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
             
     
 #take one cell randomly from i vector and give it to o vector    
+#i: donor vector of cell counts
+#o: recipient vector of cell counts
+#indx: index of cell that moved
 def drawOneCell(i, o):
     csN = np.cumsum(i);
     indx = np.nonzero(csN >= np.random.randint(csN[-1]))[0][0];

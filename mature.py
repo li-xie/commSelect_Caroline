@@ -9,6 +9,19 @@ Created on Tue May 19 15:21:04 2020
 import commSelect
 import numpy as np
 
+#lets list of communities grow for given number of steps
+#input:
+#newbDataAll: list of communities (community is a list of CellTypes)
+#ic_metabol: list of initial concentrations for each metabolite
+#ivpFunc: function to integrate
+#nsteps: int, number of integration steps
+#dt: float, size of each integration step
+#mut_params: list with size 4, mutation parameters
+#parallel: bool, True if running in parallel
+#output:
+#adultDataAll: list of adult communities (community is a list of CellTypes)
+#data: time series data on biomass of each CellType + conc of each metabolite
+
 def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel):
 
     num_wells = len(newbDataAll);
