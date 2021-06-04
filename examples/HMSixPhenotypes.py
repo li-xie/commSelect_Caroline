@@ -231,6 +231,7 @@ if __name__ == "__main__":
         #num_wells: number of wells
         #BM_target: target biomass per newborn
         #newborns_per_adult: max number of newborns to be made with 1 adult
+        #cs: True if cell sorting, False if pipetting
         newbDataAll = commSelect.reproduce.reproduce(adultDataAll, newbDataAll, P_sorted, \
-                                num_wells, BM_target, newborns_per_adult);
+                                num_wells, BM_target, newborns_per_adult, False);
 
