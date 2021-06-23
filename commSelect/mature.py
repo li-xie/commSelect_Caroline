@@ -18,11 +18,12 @@ import numpy as np
 #dt: float, size of each integration step
 #mut_params: list with size 4, mutation parameters
 #parallel: bool, True if running in parallel
+#verbose: print id of well when it's being simulated
 #output:
 #adultDataAll: list of adult communities (community is a list of CellTypes)
 #data: time series data on biomass of each CellType + conc of each metabolite
 
-def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel):
+def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel, verbose=False):
 
     num_wells = len(newbDataAll);
     if (parallel):
@@ -37,7 +38,7 @@ def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel):
     else:
         adultDataAll = [0.] * num_wells;
         for i in range(num_wells):
-            print(i);
+            if (verbose): print(i);
             adultDataAll[i] = commSelect.simulateOneWell.simulateOneWell( \
                                 newbDataAll[i], ic_metabol, \
                                 ivpFunc, nsteps, dt, mut_params);

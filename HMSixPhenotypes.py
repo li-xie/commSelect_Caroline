@@ -13,17 +13,16 @@ import time as tm
 
 num_wells = 10; 
 num_cycles = 1;
-top_tier = 1.; #top percent of adults chosen for reproduction
 parallel = False;
 run_id = "default"
 
 # time params
 dt = 0.05;
 cycle_duration = 17;
+# number of integration steps for mature cycle, positive int
 nsteps = int(np.ceil(cycle_duration/dt));
-time = np.arange(0, cycle_duration, dt);
 
-#mutable params
+#mutable params initial conditions, non-negative float
 fp_init = 0.1;
 K_MR_init = 1.;
 K_MB_init = 1./3 * 500;
@@ -31,6 +30,7 @@ b_Mmax_init = 0.7 / 1.2;
 b_Hmax_init = 0.3 / 1.2;
 K_HR_init = 1.;
 
+#mutable params upper bounds, non-negative float
 fp_bound = 1.;
 K_MR_bound = 1./3;
 K_MB_bound = 100./3;
@@ -47,31 +47,40 @@ traits_manu_bound = np.array([fp_bound, b_Mmax_bound, 1./K_MR_bound, 1./K_MB_bou
 traits_help_bound = np.array([b_Hmax_bound, 1./K_HR_bound]);
 traits_bound = [traits_manu_bound, traits_help_bound];
 
+#mutable params lower bounds, non-negative float
 traits_manu_lowerbound = np.array([0., 0., 0., 0.]);
 traits_help_lowerbound = np.array([0., 0.]);
 traits_lowerbound = [traits_manu_lowerbound, traits_help_lowerbound];
 
-#constant params
+#constant growth + metabolite params, any type
 c_BM = 1./3;
 c_RM = 10**-4;
 c_RH = 10**-4;
 r_P = 1.;
+
+#death rates, non-negative float
 d_M = 3.5 * 10**-3;
 d_H = 1.5 * 10**-3;
+
+#metabolite initial conc, non-negative float
 R_init = 10.;
+
+#cell initial pop size, non-negative int
 M_init = 60;
 H_init = 40;
 
-#mutation params (required)
+#mutation params, non-negative float
 p_mut = 2 * 10**-3;  # mutation rate
-frac_null = 0.5; # fraction of mutations that are null
+frac_null = 0.5; # fraction of mutations that are null (set trait to 0.)
 sp0 = 0.05; # 'positive' mutation factor
 sn0 = 0.067; # 'negative' mutation factor
 mut_params = [p_mut, frac_null, sp0, sn0];
 
-nD = 100; # dilution factor for fixed fold pipetting
-BM_target = 100.; # target biomass for regular pipetting
-newborns_per_adult = int(np.floor(num_wells / top_tier));
+#reproduction params
+nD = 100; # dilution factor for fixed fold pipetting, positive int
+BM_target = 100.; # target biomass for regular pipetting, positive float
+top_tier = 1.; #top percent of adults chosen for reproduction, float >= 1.
+newborns_per_adult = int(np.floor(num_wells / top_tier)); # max newborns per adult, positive int
 
 #system of diffeqs that describe community dynamics
 #arg t: timestep (required for solve_ivp)
@@ -81,22 +90,18 @@ newborns_per_adult = int(np.floor(num_wells / top_tier));
 #returns: dydt
 def RBPFG_prime(t, y, manuCell, helpCell):
     
+    #biomass vectors
+    #length depends on how many mutants of each type there are
     Bio_M = manuCell.biomass(); #vector (multiple variants of M)
     Bio_H = helpCell.biomass(); #vector (multiple variants of H)
     
-    #making sure they are 1D vectors
-    if np.ndim(Bio_M) > 1:
-        Bio_M = Bio_M[:,0];
-    if np.ndim(Bio_H) > 1:
-        Bio_H = Bio_H[:,0];
-    
-    #trait vectors of length len(Bio_M)
+    #trait vectors with same length as Bio_M
     fp = manuCell.traits[:,0];
     b_Mmax = manuCell.traits[:,1];
     K_MR = manuCell.traits[:,2];
     K_MB = manuCell.traits[:,3];
     
-    #trait vectors of length len(Bio_H)
+    #trait vectors with same length as Bio_H
     b_Hmax = helpCell.traits[:,0];
     K_HR = helpCell.traits[:,1];
     
@@ -109,27 +114,36 @@ def RBPFG_prime(t, y, manuCell, helpCell):
     R = y[0];
     B = y[1];
         
-    # birth rate coefficients
+    # birth rate coefficients 
+    # calculated separately for each mutant based on their traits
+    #vector with same length as Bio_H
     b_Hcoef = R * K_HR / (R * K_HR + 1); # one value for each variant
+    
+    #vectors with same length as Bio_M
     R_M = R * K_MR;
     B_M = B * K_MB;
     b_Mcoef = (R_M * B_M) / (R_M + B_M) * (1. / (1 + R_M) + 1. / (1 + B_M));
     
     #rate of change of metabolites
-    #sum up all the metabolite production and consumption by all variants
-    R_prime = -sum(b_Hmax * b_Hcoef * c_RH * np.transpose(Bio_H)) \
-              -sum(b_Mmax * b_Mcoef * c_RM * np.transpose(Bio_M));
-    B_prime = sum(b_Hmax * b_Hcoef * np.transpose(Bio_H)) \
-             -sum(b_Mmax * b_Mcoef * c_BM * np.transpose(Bio_M));
-    P_prime = sum(b_Mmax * b_Mcoef * r_P * fp * np.transpose(Bio_M));
+    #find the production/consumption rate of each metabolite for each mutant
+    #by multiplying vectors elementwise
+    #then use sum() to add up all fluxes and find overall rate of change
+    R_prime = -sum(b_Hmax * b_Hcoef * Bio_H) * c_RH \
+              -sum(b_Mmax * b_Mcoef * Bio_M) * c_RM;
+    B_prime = sum(b_Hmax * b_Hcoef * Bio_H) \
+             -sum(b_Mmax * b_Mcoef * Bio_M) * c_BM;
+    P_prime = sum(b_Mmax * b_Mcoef * fp * Bio_M) * r_P;
      
-    #cell birth rates per biomass
+    #cell birth rates per biomass for each mutant
+    #vector with same length as Bio_M
     M_prime_coef = (1 - fp) * b_Mmax * b_Mcoef;
+    #vector with same length as Bio_H
     H_prime_coef = b_Hmax * b_Hcoef;
     
     metabol_prime = [R_prime, B_prime, P_prime];  # order is same as before
     bio_prime = np.append(M_prime_coef, H_prime_coef).tolist();
     
+    #dydt (must be list, not numpy array)
     dydt = metabol_prime + bio_prime; #metabolites first, then cells
 
     return dydt;

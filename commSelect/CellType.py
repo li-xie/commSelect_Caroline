@@ -13,9 +13,9 @@ import numpy as np
 class CellType:
     
     #create new cell type
-    #traits: n_genos x n_traits 2D array
-    #L: n_genos x 1 1D array or scalar
-    #N: n_genos x 1 1D array or scalar
+    #traits: n_genos x n_traits 2D array of floats
+    #L: n_genos x 1 1D array or scalar float
+    #N: n_genos x 1 1D array or scalar integer
     def __init__(self, traits, L, N, d):
         if np.shape(traits)[0] > 1 and np.shape(traits)[0] == np.size(N) and np.size(N) == np.size(L):
             self.traits = traits.copy();           
@@ -45,7 +45,7 @@ class CellType:
     
     #biomass vector by strain        
     def biomass(self):
-        return np.transpose([self.N * self.L]);
+        return self.N * self.L;
     
     #biomass as scalar
     def biomassSum(self):
@@ -55,9 +55,9 @@ class CellType:
     def meanTraits(self):
         bm = self.biomass();
         if sum(bm) > 0:
-            return np.sum(self.traits * bm, axis=0) / sum(bm);
+            return np.sum(self.traits * bm.reshape(-1,1), axis=0) / sum(bm);
         elif np.shape(self.traits)[0] > 0:
-            return np.sum(self.traits * bm, axis=0);
+            return np.sum(self.traits * bm.reshape(-1,1), axis=0);
         elif np.ndim(self.traits) == 2:
             return np.zeros(np.shape(self.traits)[1]);
         else:
