@@ -9,12 +9,12 @@ Created on Tue Apr 28 17:43:14 2020
 import numpy as np
 import commSelect
 import os
-import time as tm
+import pickle
 
 num_wells = 10; 
-num_cycles = 1;
+num_cycles = 2;
 parallel = False;
-run_id = "default"
+fname = "Results"
 
 # time params
 dt = 0.05;
@@ -158,13 +158,7 @@ def commFunc(data):
     #for each community
         
 if __name__ == "__main__":
-    
-    #initialize output dir
-    init_seed = np.random.randint(1e7);
-    np.random.seed(init_seed);
-    run_id += str(init_seed);
-    os.mkdir(run_id);
-    
+        
     # initialize community structure
     ic_traits_manu = np.array([[fp_init, b_Mmax_init, 1./K_MR_init, 1./K_MB_init]]);
     ic_L_manu = np.array([1.]); #cell length
@@ -191,16 +185,21 @@ if __name__ == "__main__":
     newbDataAll = [];
     for i in range(num_wells):
         newbDataAll += [list(map(commSelect.CellType.CellType.copy, newbData))];
- 
-    print("first newborns initialized");
-    
+
+    # print("first newborns initialized");
+    if not os.path.exists(fname):
+        os.mkdir(fname);   
+    rng_main = np.random.default_rng()
     #cycle through
     for c in range(num_cycles):
-        print("cycle %d..." % c);
-            
+        with open(fname + f'/rng_main{c}.pkl', 'wb') as f:
+            pickle.dump(rng_main, f)
+        rng_seeds = rng_main.integers(0, 2**32, num_wells)
         #save newborn data
-        if (c % 10 == 0):
-            commSelect.save.saveNewborns(newbDataAll, run_id + "/newb_%d.txt" % c);
+        with open(fname + f'/newborns{c}.pkl', 'wb') as f:
+            pickle.dump(newbDataAll, f)
+        # if (c % 10 == 0):
+        #     commSelect.save.saveNewborns(newbDataAll, run_id + "/newb_%d.txt" % c);
         
         #mature
         #args for mature function: 
@@ -219,15 +218,15 @@ if __name__ == "__main__":
         #'data type' is total biomass of each cell type and conc of each metabolite
         #biomass comes first (M, H) then metabolites (R, B, P)
         #so for example data[:,1,-1] is the final H biomass of each community
-        start = tm.time();
+        
         adultDataAll, data = commSelect.mature.mature(newbDataAll, ic_metabol, \
-                                RBPFG_prime, nsteps, dt, mut_params, parallel);
-        end = tm.time();
-        print("Cycle completed in %.2f secs" % (end - start));
+                                RBPFG_prime, nsteps, dt, mut_params, rng_seeds, parallel);
             
         #save adult data
-        if (c % 10 == 0):
-            commSelect.save.saveAdults(adultDataAll, data, run_id + "/adult_%d.txt" % c);       
+        # with open(run_id + f'/adults_{c}.pkl', 'wb') as f:
+        #     pickle.dump(adultDataAll, f)
+        # if (c % 10 == 0):
+        #     commSelect.save.saveAdults(adultDataAll, data, run_id + "/adult_%d.txt" % c);       
 
         #evaluate community function for each adult
         P = commFunc(data);
@@ -246,6 +245,15 @@ if __name__ == "__main__":
         #BM_target: target biomass per newborn
         #newborns_per_adult: max number of newborns to be made with 1 adult
         #cs: True if cell sorting, False if pipetting
-        newbDataAll = commSelect.reproduce.reproduce(adultDataAll, newbDataAll, P_sorted, \
-                                num_wells, BM_target, newborns_per_adult, False);
+        newbDataAll, win_inds = commSelect.reproduce.reproduce(adultDataAll, newbDataAll, P_sorted, \
+                                num_wells, BM_target, newborns_per_adult, rng_main, False);
+        adultDataSel = [adultDataAll[i] for i in win_inds]
+        dynamicsSel = data[win_inds, :, :]
+        with open(fname + f'/adultDataSel{c}.pkl', 'wb') as f:
+            pickle.dump(adultDataSel, f)
+        with open(fname + f'/dynamicsSel{c}.pkl', 'wb') as f:
+            pickle.dump(dynamicsSel, f)
+        if c == num_cycles:
+            with open(fname + f'/newborns{c+1}.pkl', 'wb') as f:
+                pickle.dump(newbDataAll, f)
 
