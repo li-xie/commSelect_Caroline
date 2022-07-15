@@ -21,7 +21,8 @@ import scipy.integrate
 #output:
 #adultData: mature community, list of CellType objects
 #data: time series data of species biomass + metabolite concentration
-def simulateOneWell(newbData, initMetabolData, ivpFunc, nsteps, dt, mut_params):  
+def simulateOneWell(newbData, initMetabolData, ivpFunc, nsteps, dt, mut_params, rng_seed):  
+    rng = np.random.default_rng(rng_seed)    
     #initialize metabolite time series data structure
     metabolData = np.append(np.transpose([initMetabolData]), \
                             np.zeros((len(initMetabolData),nsteps)), axis=1);
@@ -68,9 +69,9 @@ def simulateOneWell(newbData, initMetabolData, ivpFunc, nsteps, dt, mut_params):
             #divide cells of length >= 2, track daughter cells for mutation
             pot_mut_index = newbData[n].divide();
             #random cell death
-            newbData[n].death();
+            newbData[n].death(rng);
             #mutate random daughter cells
-            newbData[n].mutateTraits(pot_mut_index, p_mut, frac_null, sp0, sn0);
+            newbData[n].mutateTraits(pot_mut_index, p_mut, frac_null, sp0, sn0, rng);
             #bound mutant cell genotypes
             newbData[n].boundTraits();
             #update number of genotypes

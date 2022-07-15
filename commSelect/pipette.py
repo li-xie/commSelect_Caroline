@@ -11,7 +11,7 @@ import commSelect.CellType
 import numpy as np
 
 #divide mature community into newborns by biomass
-def pipette(newbDataAll, winnerData, target_inds, nD):
+def pipette(newbDataAll, winnerData, target_inds, nD, rng):
     
     if (len(target_inds) > nD):
         print("Error: number of targets must be less than dilution factor!")
@@ -23,7 +23,7 @@ def pipette(newbDataAll, winnerData, target_inds, nD):
         #randomly separate adult cells into nD partitions
         newb_N_mat = [];
         for i in winnerData[c].N:
-            newb_N_mat.append(np.random.multinomial(i, np.ones(nD) * 1./nD));
+            newb_N_mat.append(rng.multinomial(i, np.ones(nD) * 1./nD));
         
         #initialize newb_N_mat if adult species is extinct
         if len(newb_N_mat) > 0:    

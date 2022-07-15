@@ -73,16 +73,16 @@ class CellType:
         
         return np.logical_and(np.transpose([lgt2]), self.traits > 0);
     
-    def death(self):
-        self.N -= commSelect.randFcns.fastbinorv(self.N, self.death_rate);
+    def death(self, rng):
+        self.N -= commSelect.randFcns.fastbinorv(self.N, self.death_rate, rng);
     
     #mutate dividing cells    
-    def mutateTraits(self, pot_mut_index, p_mut, frac_null, sp0, sn0):
+    def mutateTraits(self, pot_mut_index, p_mut, frac_null, sp0, sn0, rng):
         
         nt = np.shape(self.traits)[1]; # number of traits
         for i in range(nt):  # one trait at a time
             if sum(self.N[pot_mut_index[:,i]]) > 0:
-                N_mut = commSelect.randFcns.fastbinorv(self.N[pot_mut_index[:,i]], p_mut);
+                N_mut = commSelect.randFcns.fastbinorv(self.N[pot_mut_index[:,i]], p_mut, rng);
                 if sum(N_mut) > 0:
                     L_mut = self.L[pot_mut_index[:,i]];
                     traits_mut = self.traits[pot_mut_index[:,i],:];
@@ -93,7 +93,7 @@ class CellType:
                     N_mut = N_mut[np.nonzero(N_mut)];
                     
                     #null mutations
-                    N_null = commSelect.randFcns.fastbinorv(N_mut, frac_null);
+                    N_null = commSelect.randFcns.fastbinorv(N_mut, frac_null, rng);
                     N_am = N_mut - N_null;
                     traits_null = traits_mut[np.nonzero(N_null),:][0];
                     L_null = L_mut[np.nonzero(N_null)];
@@ -130,7 +130,7 @@ class CellType:
                             print("Error: something is wrong");
                             print(traits_split);
                             return;
-                        mult = commSelect.randFcns.mutrndDunham(sp0, sn0, np.shape(traits_split)[0]) + 1;
+                        mult = commSelect.randFcns.mutrndDunham(sp0, sn0, np.shape(traits_split)[0], rng) + 1;
                         traits_split[:,i] *= mult;
                         
                         self.traits = np.append(self.traits, traits_split, axis=0);

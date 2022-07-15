@@ -20,7 +20,7 @@ import commSelect.CellType
 #cs: bool, True if cell sorting, False if pipetting
 #output:
 #newbDataAll: populated newborn community list
-def reproduce(adultDataAll, newbDataAll, P_sorted, num_wells, BM_target, newborns_per_adult, cs):
+def reproduce(adultDataAll, newbDataAll, P_sorted, num_wells, BM_target, newborns_per_adult, rng, cs):
     
     finished_pipetting = False;
     num_wells_filled = 0;
@@ -55,13 +55,13 @@ def reproduce(adultDataAll, newbDataAll, P_sorted, num_wells, BM_target, newborn
                 
             num_wells_filled += len(target_inds);
     
-            print("filling: " + str(target_inds));
+            # print("filling: " + str(target_inds));
             
             if cs: # cell sorting method
-                newbDataAll = commSelect.cellSorting.cellSorting(newbDataAll, winnerData, target_inds, nD, BM_target);
+                newbDataAll = commSelect.cellSorting.cellSorting(newbDataAll, winnerData, target_inds, nD, BM_target, rng);
             else: # pipetting method
-                newbDataAll = commSelect.pipette.pipette(newbDataAll, winnerData, target_inds, nD);
+                newbDataAll = commSelect.pipette.pipette(newbDataAll, winnerData, target_inds, nD, rng);
             
         if (finished_pipetting):
             break;
-    return newbDataAll;
+    return newbDataAll, win_inds;

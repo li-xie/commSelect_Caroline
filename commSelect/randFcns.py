@@ -12,7 +12,7 @@ def normcond(N,p):
     p[p == 0] = 1e-9;  # avoid division errors
     return np.logical_and((N > 9 * p / (1-p)), (N > 9 * (1-p) / p));
 
-def fastbinorv(N,p):
+def fastbinorv(N,p,rng):
     if (np.size(N) <= 0):
         #print("error: N must not be empty");
         return;
@@ -30,7 +30,7 @@ def fastbinorv(N,p):
         p = np.ones(np.shape(N)) * p;
         
     if (N.min() > thresh_p2n and normcond(N,p).all()):
-        result = np.round(np.random.normal(N * p, np.sqrt(N * p * (1 - p)))).astype(int);
+        result = np.round(rng.normal(N * p, np.sqrt(N * p * (1 - p)))).astype(int);
     else:
         bino_ind = np.nonzero(np.logical_and(N > 0, N < thresh_b2p));
         pois_ind = np.nonzero(np.logical_and(N >= thresh_b2p, 
@@ -38,10 +38,10 @@ def fastbinorv(N,p):
         norm_ind = np.nonzero(np.logical_and(N >= thresh_p2n, normcond(N,p)));
         
         if (np.size(bino_ind) > 0):
-            result[bino_ind] = np.random.binomial(N[bino_ind],p[bino_ind]);
+            result[bino_ind] = rng.binomial(N[bino_ind],p[bino_ind]);
             
-        result[pois_ind] = np.random.poisson(N[pois_ind] * p[pois_ind]);
-        result[norm_ind] = np.round(np.random.normal(N[norm_ind] * p[norm_ind],
+        result[pois_ind] = rng.poisson(N[pois_ind] * p[pois_ind]);
+        result[norm_ind] = np.round(rng.normal(N[norm_ind] * p[norm_ind],
               np.sqrt(N[norm_ind] * p[norm_ind] * (1 - p[norm_ind])))).astype(int);
         
     result[result < 0] = result[result < 0] * 0;
@@ -49,8 +49,8 @@ def fastbinorv(N,p):
     
     return result.astype(int);
 
-def mutrndDunham(sp, sn, n):
-    u = np.random.rand(n);
+def mutrndDunham(sp, sn, n, rng):
+    u = rng.random(n);
     mu = np.zeros(len(u));
     
     idx = np.nonzero(u <= sn / (sp + sn));

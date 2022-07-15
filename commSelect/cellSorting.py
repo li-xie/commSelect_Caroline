@@ -19,7 +19,7 @@ import numpy as np
 #N0: target total number of cells
 #output:
 #newbDataAll: newborn community data structure
-def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
+def cellSorting(newbDataAll, winnerData, target_inds, nD, N0, rng):
     
     #calculate target fraction for each cell type
     bm = list(map(commSelect.CellType.CellType.biomassSum, winnerData));
@@ -34,7 +34,7 @@ def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
         
         newb_N_mat = [];
         for i in winnerData[c].N:
-            newb_N_mat.append(np.random.multinomial(i, np.ones(nD) * 1./nD));
+            newb_N_mat.append(rng.multinomial(i, np.ones(nD) * 1./nD));
             
         if len(newb_N_mat) > 0:    
             newb_N_mat = np.array(newb_N_mat);
@@ -51,7 +51,7 @@ def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
                 ne_inds = newb_N_mat[:,i] > 0;
                 temp1 = newb_N_mat[ne_inds,i];
                 temp2 = donor[ne_inds];
-                drawOneCell(temp1, temp2);
+                drawOneCell(temp1, temp2, rng);
                 newb_N_mat[ne_inds,i] = temp1;
                 donor[ne_inds] = temp2;
                 
@@ -61,7 +61,7 @@ def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
                 ne_inds = donor > 0;
                 temp1 = newb_N_mat[ne_inds,i];
                 temp2 = donor[ne_inds];
-                indx = drawOneCell(temp2, temp1);
+                indx = drawOneCell(temp2, temp1, rng);
                 newb_N_mat[ne_inds,i] = temp1;
                 donor[ne_inds] = temp2;
                 
@@ -98,9 +98,9 @@ def cellSorting(newbDataAll, winnerData, target_inds, nD, N0):
 #i: donor vector of cell counts
 #o: recipient vector of cell counts
 #indx: index of cell that moved
-def drawOneCell(i, o):
+def drawOneCell(i, o, rng):
     csN = np.cumsum(i);
-    indx = np.nonzero(csN >= np.random.randint(csN[-1]))[0][0];
+    indx = np.nonzero(csN >= rng.integers(csN[-1]))[0][0];
     i[indx] -= 1;
     o[indx] += 1;
     return indx;

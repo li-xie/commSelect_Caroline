@@ -23,7 +23,7 @@ import numpy as np
 #adultDataAll: list of adult communities (community is a list of CellTypes)
 #data: time series data on biomass of each CellType + conc of each metabolite
 
-def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel, verbose=False):
+def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, rand_seeds, parallel, verbose=False):
 
     num_wells = len(newbDataAll);
     if (parallel):
@@ -33,7 +33,7 @@ def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel, v
         with MPIPoolExecutor() as executor:
             dataIter = executor.map(commSelect.simulateOneWell.simulateOneWell, newbDataAll, \
                        repeat(ic_metabol), repeat(ivpFunc), repeat(nsteps), \
-                       repeat(dt), repeat(mut_params));
+                       repeat(dt), repeat(mut_params), rand_seeds);
         adultDataAll = [_ for _ in dataIter];
     else:
         adultDataAll = [0.] * num_wells;
@@ -41,7 +41,7 @@ def mature(newbDataAll, ic_metabol, ivpFunc, nsteps, dt, mut_params, parallel, v
             if (verbose): print(i);
             adultDataAll[i] = commSelect.simulateOneWell.simulateOneWell( \
                                 newbDataAll[i], ic_metabol, \
-                                ivpFunc, nsteps, dt, mut_params);
+                                ivpFunc, nsteps, dt, mut_params, rand_seeds[i]);
     
     #for saving adult data to files
     data = [[0.]] * num_wells;
