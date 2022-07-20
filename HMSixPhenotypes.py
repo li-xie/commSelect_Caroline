@@ -36,7 +36,7 @@ K_MR_bound = 1./3;
 K_MB_bound = 100./3;
 K_HR_bound = 0.2;
 b_Mmax_bound = 0.7;
-b_Hmax_bound = 0.8;
+b_Hmax_bound = 0.3;
 
 #note that the Monod constants are saved as their reciprocals.
 #This is because the mutation function biases towards deleterious mutations
@@ -63,7 +63,7 @@ d_M = 3.5 * 10**-3;
 d_H = 1.5 * 10**-3;
 
 #metabolite initial conc, non-negative float
-R_init = 10.;
+R_init = 1.;
 
 #cell initial pop size, non-negative int
 M_init = 60;
@@ -79,7 +79,7 @@ mut_params = [p_mut, frac_null, sp0, sn0];
 #reproduction params
 nD = 100; # dilution factor for fixed fold pipetting, positive int
 BM_target = 100.; # target biomass for regular pipetting, positive float
-top_tier = 1.; #top percent of adults chosen for reproduction, float >= 1.
+top_tier = 1.; #top # of adults chosen for reproduction, float >= 1.
 newborns_per_adult = int(np.floor(num_wells / top_tier)); # max newborns per adult, positive int
 
 #system of diffeqs that describe community dynamics
@@ -198,8 +198,6 @@ if __name__ == "__main__":
         #save newborn data
         with open(fname + f'/newborns{c}.pkl', 'wb') as f:
             pickle.dump(newbDataAll, f)
-        # if (c % 10 == 0):
-        #     commSelect.save.saveNewborns(newbDataAll, run_id + "/newb_%d.txt" % c);
         
         #mature
         #args for mature function: 
@@ -223,11 +221,9 @@ if __name__ == "__main__":
                                 RBPFG_prime, nsteps, dt, mut_params, rng_seeds, parallel);
             
         #save adult data
-        # with open(run_id + f'/adults_{c}.pkl', 'wb') as f:
-        #     pickle.dump(adultDataAll, f)
-        # if (c % 10 == 0):
-        #     commSelect.save.saveAdults(adultDataAll, data, run_id + "/adult_%d.txt" % c);       
-
+        with open(fname + f'/adults{c}.pkl', 'wb') as f:
+            pickle.dump(adultDataAll, f)
+        
         #evaluate community function for each adult
         P = commFunc(data);
         P_sorted = np.argsort(P);
@@ -251,8 +247,8 @@ if __name__ == "__main__":
         dynamicsSel = data[win_inds, :, :]
         with open(fname + f'/adultDataSel{c}.pkl', 'wb') as f:
             pickle.dump(adultDataSel, f)
-        with open(fname + f'/dynamicsSel{c}.pkl', 'wb') as f:
-            pickle.dump(dynamicsSel, f)
+        # with open(fname + f'/dynamicsSel{c}.pkl', 'wb') as f:
+        #     pickle.dump(dynamicsSel, f)
         if c == num_cycles:
             with open(fname + f'/newborns{c+1}.pkl', 'wb') as f:
                 pickle.dump(newbDataAll, f)
